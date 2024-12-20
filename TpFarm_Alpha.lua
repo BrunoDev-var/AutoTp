@@ -1,5 +1,5 @@
 -- Creación de un menú profesional en Roblox Studio con GUI movible
--- Incluye guardar ubicación, ajuste de intervalo de teleport, y persistencia al morir
+-- Incluye guardar ubicación, ajuste de intervalo de teleport, persistencia al morir, y Anti-AFK
 
 -- Crear GUI principal
 local player = game.Players.LocalPlayer
@@ -8,8 +8,8 @@ screenGui.Name = "ProfessionalMenu"
 screenGui.ResetOnSpawn = false -- Asegura que el menú no desaparezca al morir
 
 local mainFrame = Instance.new("Frame", screenGui)
-mainFrame.Size = UDim2.new(0, 350, 0, 250)
-mainFrame.Position = UDim2.new(0.5, -175, 0.5, -125)
+mainFrame.Size = UDim2.new(0, 350, 0, 300)
+mainFrame.Position = UDim2.new(0.5, -175, 0.5, -150)
 mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 mainFrame.BorderSizePixel = 0
 mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -27,8 +27,8 @@ title.TextSize = 20
 
 -- Botón para guardar ubicación
 local saveLocationButton = Instance.new("TextButton", mainFrame)
-saveLocationButton.Size = UDim2.new(0.8, 0, 0.2, 0)
-saveLocationButton.Position = UDim2.new(0.1, 0, 0.3, 0)
+saveLocationButton.Size = UDim2.new(0.8, 0, 0.15, 0)
+saveLocationButton.Position = UDim2.new(0.1, 0, 0.25, 0)
 saveLocationButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 saveLocationButton.Text = "Save Location"
 saveLocationButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -37,18 +37,28 @@ saveLocationButton.TextSize = 18
 
 -- Botón para activar/desactivar Auto TP
 local autoTpButton = Instance.new("TextButton", mainFrame)
-autoTpButton.Size = UDim2.new(0.8, 0, 0.2, 0)
-autoTpButton.Position = UDim2.new(0.1, 0, 0.55, 0)
+autoTpButton.Size = UDim2.new(0.8, 0, 0.15, 0)
+autoTpButton.Position = UDim2.new(0.1, 0, 0.45, 0)
 autoTpButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 autoTpButton.Text = "Auto TP: OFF"
 autoTpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 autoTpButton.Font = Enum.Font.SourceSansBold
 autoTpButton.TextSize = 18
 
+-- Botón para activar/desactivar Anti-AFK
+local antiAfkButton = Instance.new("TextButton", mainFrame)
+antiAfkButton.Size = UDim2.new(0.8, 0, 0.15, 0)
+antiAfkButton.Position = UDim2.new(0.1, 0, 0.65, 0)
+antiAfkButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+antiAfkButton.Text = "Anti-AFK: OFF"
+antiAfkButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+antiAfkButton.Font = Enum.Font.SourceSansBold
+antiAfkButton.TextSize = 18
+
 -- Slider para ajuste del intervalo de teleport
 local sliderFrame = Instance.new("Frame", mainFrame)
 sliderFrame.Size = UDim2.new(0.8, 0, 0.15, 0)
-sliderFrame.Position = UDim2.new(0.1, 0, 0.75, 0)
+sliderFrame.Position = UDim2.new(0.1, 0, 0.85, 0)
 sliderFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 
 local sliderBar = Instance.new("Frame", sliderFrame)
@@ -75,6 +85,7 @@ sliderValueLabel.TextSize = 16
 -- Variables de funcionalidad
 local savedLocation = nil
 local autoTpEnabled = false
+local antiAfkEnabled = false
 local teleportInterval = 3 -- Intervalo inicial de teleport en segundos
 
 -- Función para guardar ubicación
@@ -92,6 +103,22 @@ end)
 autoTpButton.MouseButton1Click:Connect(function()
     autoTpEnabled = not autoTpEnabled
     autoTpButton.Text = autoTpEnabled and "Auto TP: ON" or "Auto TP: OFF"
+end)
+
+-- Función para activar/desactivar Anti-AFK
+antiAfkButton.MouseButton1Click:Connect(function()
+    antiAfkEnabled = not antiAfkEnabled
+    antiAfkButton.Text = antiAfkEnabled and "Anti-AFK: ON" or "Anti-AFK: OFF"
+    if antiAfkEnabled then
+        spawn(function()
+            while antiAfkEnabled do
+                wait(60) -- Envía un evento cada 60 segundos para evitar ser expulsado por inactividad
+                local virtualUser = game:GetService("VirtualUser")
+                virtualUser:CaptureController()
+                virtualUser:ClickButton2(Vector2.new()) -- Simula una acción de clic
+            end
+        end)
+    end
 end)
 
 -- Función para mover el slider y ajustar el intervalo
